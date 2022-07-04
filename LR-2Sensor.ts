@@ -28,13 +28,6 @@ enum LineRobotButton {
     B
 }
 
-enum SensorsNumber {
-    //% block="ซ้าย"
-    L=0,
-    //% block="ขวา"
-    R=1
-}
-
 enum LineRobotTurnDirec {
     //% block="ซ้าย"
     Left,
@@ -203,46 +196,24 @@ namespace LR2Sensor {
     //% weight=100
     function computePID(line: number, kp: number, kd: number): number {
         let power_diff = 0
-        error = line - (numSensors) * 1000 / 2
+        error = line - (numSensors - 1) * 1000 / 2
         power_diff = kp * error + kd * (error - lastError)
 
         lastError = error
         return power_diff
     }
 
-//% blockId="lineErrorPosition" block="LinePosition"
-    //% weight=80
-    export function lineErrorPosition(): number{
-        let linePos = 0
-        let calMid0 = (valSensorsMin[0] + valSensorsMax[0]) / 2
-        let calMid1 = (valSensorsMin[1] + valSensorsMax[1]) / 2
-
-        if ((ReadADC(0) < calMid0) && (ReadADC(1) > calMid1)){
-            linePos = 0
-        }
-
-        if ((ReadADC(0) > calMid0) && (ReadADC(1) > calMid1)) {
-            linePos = 1000
-        }
-
-        if ((ReadADC(0) > calMid0) && (ReadADC(1) < calMid1)) {
-            linePos = 2000
-        }
-
-        return linePos
-    }
-
     function track_line(track_speed: number, track_kp: number, track_kd: number) {
         let power_difference = 0
-        let positionValue = lineErrorPosition()
+        let positionValue = readLine()
         if (positionValue != 0) {
             last_positionValue = positionValue
         }
-        if (positionValue == 0 && last_positionValue < (numSensors) * 1000 / 2) {
+        if (positionValue == 0 && last_positionValue < (numSensors - 1) * 1000 / 2) {
             set_motors(speedTurn, 0)
             return
         }
-        if (positionValue == 0 && last_positionValue > (numSensors) * 1000 / 2) {
+        if (positionValue == 0 && last_positionValue > (numSensors - 1) * 1000 / 2) {
             set_motors(0, speedTurn)
             return
         }
@@ -286,13 +257,6 @@ namespace LR2Sensor {
         }
 
         basic.pause(100)
-    }
-
-    //% blockId="LineRobot_ตั้งค่าเซ็นเซอร์" block="ตั้งค่าเซ็นเซอร์  %SensorsNumber |Min %minVal |Max %maxVal"
-    //% weight=99
-    export function SetValueSensors(numberSensor: SensorsNumber,minVal: number, maxVal: number): void {
-        valSensorsMin[numberSensor] = minVal
-        valSensorsMax[numberSensor] = maxVal
     }
 
     /**วิ่งตามเส้นตลอด
